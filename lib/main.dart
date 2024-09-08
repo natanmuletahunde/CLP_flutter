@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:expressions/expressions.dart'; // Add this dependency for evaluating expressions
 
 void main() {
   runApp(MyApp());
@@ -32,6 +33,14 @@ class _HomePageState extends State<HomePage> {
     LoginPage(),
   ];
 
+  // List of page titles for AppBar
+  final List<String> _titles = [
+    'Calculator',
+    'Search',
+    'Login',
+  ];
+
+  // Change the selected index
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -42,10 +51,19 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Flutter App'),
-        backgroundColor: Colors.indigo,
+        title: Text(_titles[_selectedIndex]), // Change title based on the selected page
+        backgroundColor: Colors.indigo, // AppBar color
       ),
-      body: _pages[_selectedIndex],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blueAccent, Colors.purpleAccent],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: _pages[_selectedIndex],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.indigo,
         selectedItemColor: Colors.white,
@@ -99,13 +117,14 @@ class _CalculatorPageState extends State<CalculatorPage> {
   }
 
   String _calculate(String input) {
-    final result = _evaluate(input);
-    return result.toString();
-  }
-
-  double _evaluate(String expression) {
-    final parser = _ExpressionParser();
-    return parser.parse(expression);
+    try {
+      final expression = Expression.parse(input);
+      final evaluator = const ExpressionEvaluator();
+      var result = evaluator.eval(expression, {});
+      return result.toString();
+    } catch (e) {
+      return "Error";
+    }
   }
 
   @override
@@ -154,7 +173,8 @@ class _CalculatorPageState extends State<CalculatorPage> {
     return ElevatedButton(
       onPressed: () => _onButtonPressed(text),
       style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18), backgroundColor: Colors.blueAccent,
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+        backgroundColor: Colors.blueAccent,
         shape: CircleBorder(),
       ),
       child: Text(
@@ -162,36 +182,6 @@ class _CalculatorPageState extends State<CalculatorPage> {
         style: TextStyle(fontSize: 24, color: Colors.white),
       ),
     );
-  }
-}
-
-class _ExpressionParser {
-  double parse(String expression) {
-    try {
-      final tokens = expression.split(RegExp(r'([+\-*/])'));
-      double result = double.parse(tokens[0]);
-      for (int i = 1; i < tokens.length; i += 2) {
-        final operator = tokens[i];
-        final nextValue = double.parse(tokens[i + 1]);
-        switch (operator) {
-          case '+':
-            result += nextValue;
-            break;
-          case '-':
-            result -= nextValue;
-            break;
-          case '*':
-            result *= nextValue;
-            break;
-          case '/':
-            result /= nextValue;
-            break;
-        }
-      }
-      return result;
-    } catch (e) {
-      return 0.0;
-    }
   }
 }
 
@@ -228,7 +218,6 @@ class LoginPage extends StatelessWidget {
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: () {
-              // You can handle login logic here
               print('Logged in with: ${_firstNameController.text}, ${_lastNameController.text}, ${_emailController.text}');
             },
             child: Text('Login'),
@@ -276,6 +265,5 @@ class _SearchPageState extends State<SearchPage> {
   void _launchGoogleSearch(String query) {
     final searchUrl = 'https://www.google.com/search?q=$query';
     print('Launching Google search for: $searchUrl');
-    // You can use url_launcher package to launch the URL in browser
   }
 }

@@ -63,4 +63,6 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
+  
+  CalculatorPage() {}
 }
